@@ -4,7 +4,7 @@ from sklearn.svm import SVC
 from sklearn import linear_model
 import numpy as np
 
-path_to_arff_file = '/Users/AnhVu/Study/Machine_learning/Research/MEKA/DATA_FOR_MULAN/ENRON-F.arff'
+path_to_arff_file = r'C:\Users\s2983821\Desktop\DenClus\data\ENRON-F.arff'
 label_count = 53
 
 label_location = "end"
@@ -26,14 +26,18 @@ n_labels = y.shape[1]
 classifiers = []
 
 for j in range(n_labels):
-    classifier = linear_model.SGDClassifier(tol=1e-3)
-    classifier.partial_fit(X[0, :], [y[0, j]])
+    classifier = linear_model.SGDClassifier(loss='hinge', tol=1e-3)
+    classifier.partial_fit(X[0, :], [y[0, j]], classes=[0, 1])
     classifiers.append(classifier)
+
+print('den day roi 1')
 
 predictions = np.zeros((n_instances - 1, n_labels))
 
 # Start online learning
 for i in range(1, n_instances):
+    if i % 100 == 0:
+        print (i)
     for j in range(n_labels):
         # make prediction
         y_pred = classifiers[j].predict(X[i, :])
@@ -41,5 +45,7 @@ for i in range(1, n_instances):
 
         # update classifier
         classifiers[j].partial_fit(X[i, :], [y[i, j]])
+
+print('den day roi 2')
 
 # Calculate measures based on 'predictions' and grouth-true labels 'y'
