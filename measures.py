@@ -1,7 +1,7 @@
 import numpy as np
 
 
-def ranking_loss(outputs, test_target):
+def ranking_loss(p_outputs, p_test_target):
     # Computing the average precision
     # Outputs: the predicted outputs of the classifier, the output of the ith instance for the jth class
     #          is stored in Outputs(i,j)
@@ -9,8 +9,10 @@ def ranking_loss(outputs, test_target):
     #          jth class, test_target(i, j) = 1, otherwise test_target(i, j) = 0
 
     # Implemented by Vu: convert to the right format:
+    outputs = np.copy(p_outputs)
+    test_target = np.copy(p_test_target)
     outputs = np.transpose(outputs)
-    test_target[test_target == 0] = -1
+    test_target[test_target.round() == 0] = -1
     test_target = np.transpose(test_target)
     # Done
 
@@ -34,9 +36,9 @@ def ranking_loss(outputs, test_target):
     label_size = np.zeros((num_instance,))
     for i in range(num_instance):
         temp = test_target[:, i]
-        label_size[i] = np.sum(temp == np.ones(num_class, ))
+        label_size[i] = np.sum(temp.round() == np.ones(num_class, ))
         for j in range(num_class):
-            if temp[j] == 1:
+            if round(temp[j]) == 1:
                 label[i].append(j)
             else:
                 not_label[i].append(j)
@@ -53,7 +55,7 @@ def ranking_loss(outputs, test_target):
     return rankloss / num_instance
 
 
-def average_precision(outputs, test_target):
+def average_precision(p_outputs, p_test_target):
     # Computing the average precision
     # Outputs: the predicted outputs of the classifier, the output of the ith instance for the jth class
     #          is stored in Outputs(i,j)
@@ -61,8 +63,10 @@ def average_precision(outputs, test_target):
     #          jth class, test_target(i, j) = 1, otherwise test_target(i, j) = 0
 
     # Implemented by Vu: convert to the right format:
+    outputs = np.copy(p_outputs)
+    test_target = np.copy(p_test_target)
     outputs = np.transpose(outputs)
-    test_target[test_target == 0] = -1
+    test_target[test_target.round() == 0] = -1
     test_target = np.transpose(test_target)
     # Done
 
@@ -86,9 +90,9 @@ def average_precision(outputs, test_target):
     label_size = np.zeros((num_instance,))
     for i in range(num_instance):
         temp = test_target[:, i]
-        label_size[i] = np.sum(temp == np.ones(num_class, ))
+        label_size[i] = np.sum(temp.round() == np.ones(num_class, ))
         for j in range(num_class):
-            if temp[j] == 1:
+            if round(temp[j]) == 1:
                 label[i].append(j)
             else:
                 not_label[i].append(j)
@@ -100,13 +104,13 @@ def average_precision(outputs, test_target):
         tempvalue = temp[index]
         indicator = np.zeros(num_class, )
         for m in range(int(label_size[i])):
-            locs = np.where(index == label[i][m])
+            locs = np.where(index == round(label[i][m]))
             loc = locs[0][-1]
             indicator[loc] = 1
 
         summary = 0
         for m in range(int(label_size[i])):
-            locs = np.where(index == label[i][m])
+            locs = np.where(index == round(label[i][m]))
             loc = locs[0][-1]
             temp = np.sum(indicator[loc:]) / (num_class - loc + 1)
             summary = summary + np.sum(indicator[loc:]) / (num_class - loc)
@@ -115,3 +119,74 @@ def average_precision(outputs, test_target):
 
     return aveprec / num_instance
 
+
+def example_based_accuracy_instance(ypred, ytruth):
+    # P_ACCURACY Jaccard Index for one instance
+    # often simply called multi-label 'accuracy'. Multi-label only.
+    # shape: (n_labels,)
+
+    L = ytruth.shape[0]
+    set_union = 0
+    set_inter = 0
+
+    for j in range(L):
+        if round(ytruth[j]) == 1 or round(ypred[j]) == 1:
+            set_union = set_union + 1
+        if round(ytruth[j]) == 1 and round(ypred[j]) == 1:
+            set_inter = set_inter + 1
+
+    # = 1 if both sets are empty else = intersection/union
+    if set_union > 0:
+        return set_inter / set_union
+    else:
+        return 1
+
+
+def example_based_accuracy_instances(YPred, YTruth):
+    # P_ACCURACY Jaccard Index for one instances
+    # often simply called multi-label 'accuracy'. Multi-label only.
+    # shape: (n_instances, n_labels)
+
+    N = YTruth.shape[0]
+    accuracy = 0
+    for i in range(N):
+        accuracy += example_based_accuracy_instance(YPred[i, :], YTruth[i, :])
+
+    return accuracy / N
+
+
+def cal_f_measure(tp, fp, fn, beta):
+    if round(tp + fp + fn) == 0:
+        return 1
+    else:
+        beta2 = beta * beta
+        f_measure = ((beta2 + 1) * tp) / ((beta2 + 1) * tp + beta2 * fn + fp)
+        return f_measure
+
+
+def example_based_f1_instance(ypred, ytruth):
+    # shape of ypred and ytruth: (n_labels,)
+    L = ytruth.shape[0]
+    tp = 0
+    fp = 0
+    fn = 0
+
+    for j in range(L):
+        if round(ytruth[j]) == 1 and round(ypred[j]) == 1:
+            tp = tp + 1
+        if round(ytruth[j]) == 0 and round(ypred[j]) == 1:
+            fp = fp + 1
+        if round(ytruth[j]) == 1 and round(ypred[j]) == 0:
+            fn = fn + 1
+
+    f1 = cal_f_measure(tp, fp, fn, 1)
+    return f1
+
+
+def example_based_f1_instances(YPred, YTruth):
+    N = YTruth.shape[0]
+    f1 = 0
+    for i in range(N):
+        f1 += example_based_f1_instance(YPred[i, :], YTruth[i, :])
+
+    return f1 / N
