@@ -17,3 +17,9 @@ print(ex_acc)
 
 ex_f1 = measures.example_based_f1_instances(preds, truth)
 print(ex_f1)
+
+macro_f1 = measures.macro_f1(preds, truth)
+print(macro_f1)
+
+micro_f1 = measures.micro_f1(preds, truth)
+print(micro_f1)

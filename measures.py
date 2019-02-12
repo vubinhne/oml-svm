@@ -75,6 +75,7 @@ def average_precision(p_outputs, p_test_target):
     temp_test_target = []
     for i in range(num_instance):
         temp = test_target[:, i]
+        # print('temp.shape = {}'.format(temp.shape))
         if np.sum(temp) != num_class and np.sum(temp) != -num_class:
             temp_outputs.append(outputs[:, i])
             temp_test_target.append(temp)
@@ -190,3 +191,71 @@ def example_based_f1_instances(YPred, YTruth):
         f1 += example_based_f1_instance(YPred[i, :], YTruth[i, :])
 
     return f1 / N
+
+
+def macro_f1(YPred, YTruth):
+    [N, L] = YTruth.shape
+    true_positives = np.zeros((L,))
+    false_negatives = np.zeros((L,))
+    false_positives = np.zeros((L,))
+    true_negatives = np.zeros((L,))
+
+    for i in range(N):
+        for j in range(L):
+            actual = round(YTruth[i, j])
+            predicted = round(YPred[i, j])
+
+            if actual == 1:
+                if predicted == 1:
+                    true_positives[j] += 1
+                else:
+                    false_negatives[j] += 1
+            else:
+                if predicted == 1:
+                    false_positives[j] += 1
+                else:
+                    true_negatives[j] += 1
+
+    res = 0
+    for j in range(L):
+        f1 = cal_f_measure(true_positives[j], false_positives[j], false_negatives[j], 1)
+        res += f1
+
+    res = res / L
+
+    return res
+
+
+def micro_f1(YPred, YTruth):
+    [N, L] = YTruth.shape
+    true_positives = np.zeros((L,))
+    false_negatives = np.zeros((L,))
+    false_positives = np.zeros((L,))
+    true_negatives = np.zeros((L,))
+
+    for i in range(N):
+        for j in range(L):
+            actual = round(YTruth[i, j])
+            predicted = round(YPred[i, j])
+
+            if actual == 1:
+                if predicted == 1:
+                    true_positives[j] += 1
+                else:
+                    false_negatives[j] += 1
+            else:
+                if predicted == 1:
+                    false_positives[j] += 1
+                else:
+                    true_negatives[j] += 1
+
+    tp = 0
+    fp = 0
+    fn = 0
+    for j in range(L):
+        tp += true_positives[j]
+        fp += false_positives[j]
+        fn += false_negatives[j]
+
+    res = cal_f_measure(tp, fp, fn, 1)
+    return res
