@@ -11,7 +11,7 @@ file_list = ['IMDB-drift', 'SynRTG-drift', 'IMDB-break', 'SynRTG-break', 'ENRON-
 
 for dataset_name in file_list:
     print(dataset_name)
-    mat = scipy.io.loadmat('/Users/AnhVu/Study/Machine_learning/DenClus/MultiLabel/{}.mat'.format(dataset_name))
+    mat = scipy.io.loadmat(r'C:\Users\s2983821\Desktop\DenClus\data\{}.mat'.format(dataset_name))
     D = mat['D']
     L = mat['L'][0][0]
     y = D[:, :L]
