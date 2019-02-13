@@ -3,7 +3,7 @@ List of bucket rows.
 
 Add new bucket row at head of window, remove old bucket row from tail of window.
 """
-from concept_drift.adwin_bucket_row import AdwinBucketRow
+from .adwin_bucket_row import AdwinBucketRow
 
 
 class AdwinRowBucketList:

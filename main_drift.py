@@ -64,7 +64,7 @@ for dataset_name in file_list:
             classifiers = []
             for j in range(n_labels):
                 classifier = linear_model.SGDClassifier(loss='hinge', tol=1e-3, max_iter=1)
-                classifier.partial_fit([X[i, :]], [y[i, j]])
+                classifier.partial_fit([X[i, :]], [y[i, j]], classes=[0, 1])
                 classifiers.append(classifier)
 
     # np.savetxt('{}_predictions.csv'.format(dataset_name), predictions, delimiter=",", fmt='%d')

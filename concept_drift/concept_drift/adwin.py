@@ -6,7 +6,7 @@ Learning from Time-Changing Data with Adaptive Windowing
 
 from math import log, sqrt, fabs
 
-from concept_drift.adwin_buckets import AdwinRowBucketList
+from .adwin_buckets import AdwinRowBucketList
 
 
 class AdWin:
