@@ -32,6 +32,7 @@ for dataset_name in file_list:
         classifiers.append(classifier)
 
     predictions = np.zeros((n_instances - 1, n_labels))
+    probabilities = np.zeros((n_instances - 1, n_labels))
     truth = y[1:, :]
     # truth = np.array(y[1:, :].todense())
 
@@ -40,14 +41,15 @@ for dataset_name in file_list:
 
     # Start online learning
     for i in range(1, n_instances):
-        if i % 100 == 0:
-            print(i)
+        cur_probs = np.zeros(n_labels)
 
         cur_ypreds = np.zeros(n_labels)
         cur_ytruth = np.zeros(n_labels)
         for j in range(n_labels):
             # make prediction
             y_pred = classifiers[j].predict([X[i, :]])
+            cur_probs[j] = np.max(classifiers[j].predict_proba([X[i, :]]))
+
             predictions[i - 1, j] = y_pred
 
             # update classifier
@@ -55,6 +57,9 @@ for dataset_name in file_list:
 
             cur_ypreds[j] = y_pred
             cur_ytruth[j] = y[i, j]
+
+        if i % 100 == 0:
+            print(i)
 
         # ADWIN concept-drift detector
         cur_ex_acc = measures.example_based_accuracy_instance(cur_ypreds, cur_ytruth)
@@ -73,10 +78,10 @@ for dataset_name in file_list:
     # Calculate measures based on 'predictions' and grouth-true labels 'truth'
     # average precision and ranking loss require probabilities as a param, but SGD
     # with hinge loss is not a probabilistic model
-    ave_prec = measures.average_precision(predictions, truth)
+    ave_prec = measures.average_precision(probabilities, truth)
     print('Average Precision = {}'.format(ave_prec))
 
-    rankloss = measures.ranking_loss(predictions, truth)
+    rankloss = measures.ranking_loss(probabilities, truth)
     print('Ranking Loss = {}'.format(rankloss))
 
     ex_acc = measures.example_based_accuracy_instances(predictions, truth)
